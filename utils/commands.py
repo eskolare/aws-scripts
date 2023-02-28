@@ -1,6 +1,6 @@
 import os
 import pytz
-from typing import List, Tuple
+from typing import Tuple
 from decouple import config
 from utils.constants import COMMAND_SUCCESS
 from datetime import datetime, timedelta
@@ -14,19 +14,8 @@ def is_ok(res) -> bool:
     return res == COMMAND_SUCCESS
 
 
-def datetime_utcnow():
-    return datetime.now(pytz.UTC)
-
-
-def set_log(msg: str):
-    date_str = datetime_utcnow().strftime('%Y-%m-%d')
-    list_message = msg.split("\n")
-    if len(list_message) == 1:
-        os.system(f"echo {date_str}: {list_message[0]} >> ./info.log")
-    else:
-        os.system(f"echo {date_str}: {list_message[0]} >> ./info.log")
-        for m in list_message[1:]:
-            os.system(f"echo {m} >> ./info.log")
+def datetime_now():
+    return datetime.now(pytz.timezone(config("TIME_ZONE")))
 
 
 def delete_file(file_name: str):
@@ -34,12 +23,12 @@ def delete_file(file_name: str):
 
 
 def limit_date_lte(day, date) -> bool:
-    limit = datetime_utcnow() - timedelta(days=day)
+    limit = datetime_now() - timedelta(days=day)
     return date <= limit
 
 
 def dump() -> Tuple[str, bool]:
-    file_name = f"{datetime_utcnow().strftime('%Y-%m-%d')}-bkp"
+    file_name = f"{datetime_now().strftime('%Y-%m-%d')}-bkp"
     dump_name = f"{file_name}.sql"
     res = command(
         f"PGPASSWORD={config('PGPASSWORD')} pg_dump {config('DBNAME')} -U {config('PGUSERNAME')} -h {config('HOSTNAME')} -F c > ./{dump_name}"

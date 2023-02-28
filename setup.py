@@ -1,37 +1,38 @@
-import sys
 from decouple import config
 from aws import S3
-from utils.commands import delete_file, dump_and_compress, limit_date_lte, set_log
+from utils.commands import delete_file, dump_and_compress, limit_date_lte
+from utils.args import get_limit_day, is_production
+from log.logging import error_log
+from log.sentry import start_sentry
 
 
 def main():
-    try:
-        day = int(sys.argv[1])
-    except Exception as e:
-        set_log("Parameter: " + str(e))
-        set_log("Parameter day default 7")
-        day = 7
+    day = get_limit_day()
+    if is_production():
+        start_sentry()
 
     bucket = S3(bucket=config("BUCKET"))
-    list_objects = bucket.list_objects()
-    objects_to_delete = [
-        {"Key": obj.key}
-        for obj in list_objects
-        if limit_date_lte(day, obj.last_modified)
-    ]
+    objects = bucket.list_objects()
+    if objects:
+        objects_to_delete = [
+            {"Key": obj.key}
+            for obj in objects
+            if limit_date_lte(day, obj.last_modified)
+        ]
 
-    if objects_to_delete:
-        bucket.delete_objects(objects_to_delete)
+        if objects_to_delete:
+            bucket.delete_objects(objects_to_delete)
 
     try:
         tar_name, is_ok = dump_and_compress()
         if is_ok:
             bucket.upload_object(tar_name)
             delete_file(file_name=tar_name)
+        else:
+            error_log("dump_and_compress method dind't work.")
     except Exception as e:
-        set_log(str(e))
+        error_log(str(e))
 
-    # criar um sistema de log
 
 if __name__ == "__main__":
     main()

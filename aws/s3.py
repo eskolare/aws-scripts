@@ -1,8 +1,7 @@
 import boto3
 from decouple import config
 from typing import List, Optional
-from botocore.exceptions import ClientError
-from utils.commands import set_log
+from log.logging import error_log
 
 
 class S3:
@@ -20,7 +19,7 @@ class S3:
             try:
                 self.client.upload_fileobj(f, self.bucket, bucket_basename)
             except Exception as e:
-                set_log(str(e))
+                error_log(str(e))
                 return False
         return True
 
@@ -30,7 +29,7 @@ class S3:
             my_bucket = s3.Bucket(self.bucket)
             return list(my_bucket.objects.filter(Prefix=self.bucket_folder))[1:]
         except Exception as e:
-            set_log(str(e))
+            error_log(str(e))
             return None
 
     def delete_objects(self, objects: List) -> bool:
@@ -39,5 +38,5 @@ class S3:
             self.client.delete_objects(Bucket=self.bucket, Delete=delete_data)
             return True
         except Exception as e:
-            set_log(str(e))
+            error_log(str(e))
             return False
