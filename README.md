@@ -4,6 +4,9 @@ AWS Scripts
 * [Introduction](#introduction)
 * [Quickstart](#quickstart)
     + [Download](#download)
+    + [Environment](#environment)
+    + [.ENV](#env)
+    + [Start](#start)
 
 
 Introduction
@@ -39,6 +42,7 @@ Clones the repository:
         source .venv/bin/activate
         pip install -r requirements/production.txt
         sudo apt-get install zip
+
 
 ### .ENV
 
